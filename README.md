@@ -1,2 +1,2 @@
 # dunhack-bot
-Dunhack bot for your statistical needs
+Dunhack bot for all my statistical needs
