@@ -80,3 +80,7 @@ def processUsername(username: str):
         if(similar != []):
             output += f"\nDid you mean `{'` or `'.join(similar)}`?"
         return None, output
+
+def calculateWeightage(solves, points):
+    # some arbitrary function
+    return ((20 - solves) * 4 + points * 2)

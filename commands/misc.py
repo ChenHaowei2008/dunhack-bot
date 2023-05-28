@@ -2,7 +2,7 @@ import discord
 from discord.commands import SlashCommandGroup, OptionChoice, Option
 from discord.ext import commands
 from discord import File, ButtonStyle
-from commands.functions import processUsername
+from commands.functions import processUsername, calculateWeightage
 import json
 import random
 from discord.ui import Button
@@ -41,7 +41,7 @@ class misc(commands.Cog):
                             ctx, 
                             category: Option(int, "What category of challenges", choices = categoryChoices) = None,
                             username: Option(str, "Your username") = None, 
-                            # difficulty: Option(str, "Basically how many people have already solved.", choices = difficultyChoices) = "easy"
+                            difficulty: Option(str, "Basically how many people have already solved.", choices = difficultyChoices) = None
                            ):
         with open("data/challenges.json", "r") as file:
             data = file.read().strip()
@@ -64,11 +64,28 @@ class misc(commands.Cog):
             challenges = [challenge  for challenge in challenges if challenge["title"] not in challengesSolved]
         else:
             challenges = [challenge for challenge in challenges]
-
+            
         if(len(challenges) == 0):
             await ctx.respond("There are no challenges with the paramaters you supplied!")
             return
-        challenge = random.choice(challenges)
+
+        weightages = {chall["title"]: calculateWeightage(chall["solves"], chall["points"]) for chall in challenges}
+        weightages = [k for k, _ in sorted(weightages.items(), key=lambda item: item[1])]
+        print(weightages)
+        if(difficulty == None):
+            challenge = random.choice(challenges)
+        else:
+            if(difficulty == "easy"):
+                weightages = weightages[:len(weightages) // 3]
+            elif(difficulty == "medium"):
+                weightages = weightages[len(weightages)//3:len(weightages)* 2 // 3]
+            else:
+                weightages = weightages[len(weightages) * 2 //3:]
+            challenge = random.choice(weightages)
+            for chall in challenges:
+                if(chall["title"] == challenge):
+                    challenge = chall
+                    break
         
         embed = discord.Embed(
             title = challenge["title"],
