@@ -7,6 +7,14 @@ import json
 import random
 from discord.ui import Button
 
+class DefaultView(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+
+class DefaultButton(discord.ui.Button):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class misc(commands.Cog):
     def __init__(self, bot):
         super().__init__()
@@ -71,14 +79,14 @@ class misc(commands.Cog):
 
         weightages = {chall["title"]: calculateWeightage(chall["solves"], chall["points"]) for chall in challenges}
         weightages = [k for k, _ in sorted(weightages.items(), key=lambda item: item[1])]
-        print(weightages)
+
         if(difficulty == None):
             challenge = random.choice(challenges)
         else:
             if(difficulty == "easy"):
-                weightages = weightages[:len(weightages) // 3]
+                weightages = weightages[:len(weightages) // 3 + 1]
             elif(difficulty == "medium"):
-                weightages = weightages[len(weightages)//3:len(weightages)* 2 // 3]
+                weightages = weightages[len(weightages)//3 + 1:len(weightages)* 2 // 3]
             else:
                 weightages = weightages[len(weightages) * 2 //3:]
             challenge = random.choice(weightages)
@@ -88,7 +96,7 @@ class misc(commands.Cog):
                     break
         
         embed = discord.Embed(
-            title = challenge["title"],
+            title = f"{challenge['title']} ({challenge['category']['name']})",
             description = challenge["description"],
             color = discord.Colour.random()
         )
@@ -96,8 +104,11 @@ class misc(commands.Cog):
         embed.add_field(name = "Points", value = challenge["points"])
         embed.add_field(name = "Solves", value = challenge["solves"])
         
-        # buttons = [Button(label=f"Test #{i + 1}", style=discord.ButtonStyle.link, url=f["url"]) for i, f in enumerate(challenge["files"])]
-        await ctx.respond(embed = embed)
+        view = DefaultView()
+        for i, f in enumerate(challenge["files"]):
+            view.add_item(DefaultButton(label=f["title"], style=discord.ButtonStyle.link, url=f["url"].replace(' ', '%20')))
+
+        await ctx.respond(embed = embed, view = view)
         
 
 def setup(bot):
